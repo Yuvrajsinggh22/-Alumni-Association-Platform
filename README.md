@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Alumni Association Platform
 
 A comprehensive full-stack platform for Government Engineering College alumni to connect, network, find jobs, attend events, and contribute to the community.
@@ -375,3 +376,7 @@ For support and questions:
 
 **Built with ❤️ for the Government Engineering College Alumni Community**
 "# SIH-management" 
+=======
+# SIH-management
+Prototype
+>>>>>>> fb0dc0fc8d5ca72a8a36da24f96e113e8da3832a
