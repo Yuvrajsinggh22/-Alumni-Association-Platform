@@ -1,0 +1,317 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      AdminRole @default(MODERATOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Alumni {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  password          String?
+  name              String
+  profilePicture    String?
+  phone             String?
+  graduationYear    Int
+  department        String
+  degree            String
+  currentJob        String?
+  currentCompany    String?
+  location          String?
+  bio               String?
+  skills            String[] // Array of skills
+  interests         String[] // Array of interests
+  linkedinUrl       String?
+  githubUrl         String?
+  websiteUrl        String?
+  isVerified        Boolean  @default(false)
+  isPublic          Boolean  @default(true)
+  emailVerified     Boolean  @default(false)
+  lastLogin         DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  donations         Donation[]
+  jobApplications   JobApplication[]
+  postedJobs        Job[]
+  eventRegistrations EventRegistration[]
+  successStories    SuccessStory[]
+  feedbacks         Feedback[]
+  sentMessages      Message[] @relation("SentMessages")
+  receivedMessages  Message[] @relation("ReceivedMessages")
+  followers         Follow[] @relation("Followers")
+  following         Follow[] @relation("Following")
+  mentorships       Mentorship[] @relation("Mentor")
+  mentees           Mentorship[] @relation("Mentee")
+
+  @@map("alumni")
+}
+
+model Job {
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  company         String
+  location        String
+  jobType         JobType
+  experienceLevel ExperienceLevel
+  skills          String[]
+  salary          String?
+  applicationUrl  String?
+  isActive        Boolean  @default(true)
+  postedById      String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  postedBy        Alumni @relation(fields: [postedById], references: [id], onDelete: Cascade)
+  applications    JobApplication[]
+
+  @@map("jobs")
+}
+
+model JobApplication {
+  id        String   @id @default(cuid())
+  jobId     String
+  alumniId  String
+  resume    String?
+  coverLetter String?
+  status    ApplicationStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  job       Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  alumni    Alumni @relation(fields: [alumniId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, alumniId])
+  @@map("job_applications")
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  location    String
+  eventDate   DateTime
+  endDate     DateTime?
+  image       String?
+  ticketPrice Float?   @default(0)
+  maxAttendees Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  registrations EventRegistration[]
+
+  @@map("events")
+}
+
+model EventRegistration {
+  id        String   @id @default(cuid())
+  eventId   String
+  alumniId  String
+  status    RegistrationStatus @default(REGISTERED)
+  checkedIn Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  event     Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  alumni    Alumni @relation(fields: [alumniId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, alumniId])
+  @@map("event_registrations")
+}
+
+model Donation {
+  id            String   @id @default(cuid())
+  alumniId      String
+  amount        Float
+  currency      String   @default("USD")
+  purpose       String?
+  paymentMethod PaymentMethod
+  transactionId String?
+  status        DonationStatus @default(PENDING)
+  receipt       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  alumni        Alumni @relation(fields: [alumniId], references: [id], onDelete: Cascade)
+
+  @@map("donations")
+}
+
+model SuccessStory {
+  id          String   @id @default(cuid())
+  alumniId    String
+  title       String
+  content     String
+  image       String?
+  proofLink   String?
+  isApproved  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  alumni      Alumni @relation(fields: [alumniId], references: [id], onDelete: Cascade)
+
+  @@map("success_stories")
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  alumniId  String
+  category  FeedbackCategory
+  subject   String
+  message   String
+  rating    Int?     // 1-5 rating
+  status    FeedbackStatus @default(OPEN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  alumni    Alumni @relation(fields: [alumniId], references: [id], onDelete: Cascade)
+
+  @@map("feedbacks")
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  sender     Alumni @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   Alumni @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  follower    Alumni @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   Alumni @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model Mentorship {
+  id        String   @id @default(cuid())
+  mentorId  String
+  menteeId  String
+  status    MentorshipStatus @default(PENDING)
+  message   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  mentor    Alumni @relation("Mentor", fields: [mentorId], references: [id], onDelete: Cascade)
+  mentee    Alumni @relation("Mentee", fields: [menteeId], references: [id], onDelete: Cascade)
+
+  @@unique([mentorId, menteeId])
+  @@map("mentorships")
+}
+
+// Enums
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  MODERATOR
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  FREELANCE
+}
+
+enum ExperienceLevel {
+  ENTRY_LEVEL
+  MID_LEVEL
+  SENIOR_LEVEL
+  EXECUTIVE
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWED
+  SHORTLISTED
+  REJECTED
+  HIRED
+}
+
+enum RegistrationStatus {
+  REGISTERED
+  CANCELLED
+  WAITLISTED
+}
+
+enum PaymentMethod {
+  STRIPE
+  RAZORPAY
+  PAYPAL
+  BANK_TRANSFER
+}
+
+enum DonationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum FeedbackCategory {
+  GENERAL
+  TECHNICAL
+  FEATURE_REQUEST
+  BUG_REPORT
+  COMPLAINT
+}
+
+enum FeedbackStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum MentorshipStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  ACTIVE
+  COMPLETED
+}
