@@ -1,180 +1,96 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import axios from 'axios';
-import toast from 'react-hot-toast';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
-const initialState = {
-  user: null,
-  token: localStorage.getItem('token'),
-  isAuthenticated: false,
-  loading: true,
-};
-
-const authReducer = (state, action) => {
-  switch (action.type) {
-    case 'LOGIN_SUCCESS':
-      localStorage.setItem('token', action.payload.token);
-      return {
-        ...state,
-        user: action.payload.user,
-        token: action.payload.token,
-        isAuthenticated: true,
-        loading: false,
-      };
-    case 'LOGOUT':
-      localStorage.removeItem('token');
-      return {
-        ...state,
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        loading: false,
-      };
-    case 'LOAD_USER':
-      return {
-        ...state,
-        user: action.payload,
-        isAuthenticated: true,
-        loading: false,
-      };
-    case 'AUTH_ERROR':
-      localStorage.removeItem('token');
-      return {
-        ...state,
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        loading: false,
-      };
-    case 'UPDATE_USER':
-      return {
-        ...state,
-        user: { ...state.user, ...action.payload },
-      };
-    default:
-      return state;
-  }
-};
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 export const AuthProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(authReducer, initialState);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const [token, setToken] = useState(() => localStorage.getItem("token") || null);
 
-  // Set default axios headers
-  useEffect(() => {
-    if (state.token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${state.token}`;
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
-    }
-  }, [state.token]);
-
-  // Load user on app start
-  useEffect(() => {
-    const loadUser = async () => {
-      if (state.token) {
-        try {
-          const response = await axios.get('/api/auth/me');
-          dispatch({ type: 'LOAD_USER', payload: response.data.alumni });
-        } catch (error) {
-          console.error('Failed to load user:', error);
-          dispatch({ type: 'AUTH_ERROR' });
-        }
-      } else {
-        dispatch({ type: 'AUTH_ERROR' });
-      }
-    };
-
-    loadUser();
-  }, []);
-
+  // ✅ Login
   const login = async (email, password) => {
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
-      dispatch({
-        type: 'LOGIN_SUCCESS',
-        payload: {
-          user: response.data.alumni,
-          token: response.data.token,
-        },
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
-      toast.success('Login successful!');
-      return { success: true };
-    } catch (error) {
-      const message = error.response?.data?.error || 'Login failed';
-      toast.error(message);
-      return { success: false, error: message };
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed");
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.alumni));
+
+      setToken(data.token);
+      setUser(data.alumni);
+
+      return { success: true, user: data.alumni };
+    } catch (err) {
+      console.error("Login error:", err.message);
+      return { success: false, error: err.message };
     }
   };
 
-  const register = async (userData) => {
+  // ✅ Register
+  const register = async (formData) => {
     try {
-      const response = await axios.post('/api/auth/register', userData);
-      dispatch({
-        type: 'LOGIN_SUCCESS',
-        payload: {
-          user: response.data.alumni,
-          token: response.data.token,
-        },
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
-      toast.success('Registration successful! Please wait for admin verification.');
-      return { success: true };
-    } catch (error) {
-      const message = error.response?.data?.error || 'Registration failed';
-      toast.error(message);
-      return { success: false, error: message };
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Registration failed");
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.alumni));
+
+      setToken(data.token);
+      setUser(data.alumni);
+
+      return { success: true, user: data.alumni };
+    } catch (err) {
+      console.error("Register error:", err.message);
+      return { success: false, error: err.message };
     }
   };
 
+  // ✅ Logout
   const logout = () => {
-    dispatch({ type: 'LOGOUT' });
-    toast.success('Logged out successfully');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setToken(null);
+    setUser(null);
   };
 
-  const updateProfile = async (profileData) => {
-    try {
-      const response = await axios.put('/api/auth/profile', profileData);
-      dispatch({ type: 'UPDATE_USER', payload: response.data.alumni });
-      toast.success('Profile updated successfully!');
-      return { success: true };
-    } catch (error) {
-      const message = error.response?.data?.error || 'Profile update failed';
-      toast.error(message);
-      return { success: false, error: message };
+  // ✅ Auto-login if token exists
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const storedToken = localStorage.getItem("token");
+
+    if (storedUser && storedToken) {
+      setUser(JSON.parse(storedUser));
+      setToken(storedToken);
     }
-  };
+  }, []);
 
-  const changePassword = async (currentPassword, newPassword) => {
-    try {
-      await axios.put('/api/auth/change-password', {
-        currentPassword,
-        newPassword,
-      });
-      toast.success('Password changed successfully!');
-      return { success: true };
-    } catch (error) {
-      const message = error.response?.data?.error || 'Password change failed';
-      toast.error(message);
-      return { success: false, error: message };
-    }
-  };
-
-  const value = {
-    ...state,
-    login,
-    register,
-    logout,
-    updateProfile,
-    changePassword,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);

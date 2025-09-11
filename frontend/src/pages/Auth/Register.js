@@ -142,8 +142,8 @@ const Register = () => {
     const registrationData = {
       ...formData,
       graduationYear: parseInt(formData.graduationYear),
-      skills: formData.skills ? formData.skills.split(',').map(s => s.trim()).filter(s => s) : [],
-      interests: formData.interests ? formData.interests.split(',').map(s => s.trim()).filter(s => s) : []
+        skills: formData.skills ? formData.skills : "",
+        interests: formData.interests ? formData.interests : ""
     };
 
     const result = await register(registrationData);

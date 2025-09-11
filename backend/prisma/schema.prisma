@@ -8,6 +8,7 @@ generator client {
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
+
 }
 
 model Admin {
@@ -15,7 +16,7 @@ model Admin {
   email     String   @unique
   password  String
   name      String
-  role      AdminRole @default(MODERATOR)
+  role      String?   // was AdminRole
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -36,8 +37,8 @@ model Alumni {
   currentCompany    String?
   location          String?
   bio               String?
-  skills            String[] // Array of skills
-  interests         String[] // Array of interests
+  skills            String?   // was String[]
+  interests         String?   // was String[]
   linkedinUrl       String?
   githubUrl         String?
   websiteUrl        String?
@@ -71,9 +72,9 @@ model Job {
   description     String
   company         String
   location        String
-  jobType         JobType
-  experienceLevel ExperienceLevel
-  skills          String[]
+  jobType         String?  // was JobType
+  experienceLevel String?  // was ExperienceLevel
+  skills          String?  // was String[]
   salary          String?
   applicationUrl  String?
   isActive        Boolean  @default(true)
@@ -94,7 +95,7 @@ model JobApplication {
   alumniId  String
   resume    String?
   coverLetter String?
-  status    ApplicationStatus @default(PENDING)
+  status    String?   @default("PENDING") // was ApplicationStatus
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -130,7 +131,7 @@ model EventRegistration {
   id        String   @id @default(cuid())
   eventId   String
   alumniId  String
-  status    RegistrationStatus @default(REGISTERED)
+  status    String?  @default("REGISTERED") // was RegistrationStatus
   checkedIn Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -149,9 +150,9 @@ model Donation {
   amount        Float
   currency      String   @default("USD")
   purpose       String?
-  paymentMethod PaymentMethod
+  paymentMethod String?  // was PaymentMethod
   transactionId String?
-  status        DonationStatus @default(PENDING)
+  status        String?  @default("PENDING") // was DonationStatus
   receipt       String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -182,11 +183,11 @@ model SuccessStory {
 model Feedback {
   id        String   @id @default(cuid())
   alumniId  String
-  category  FeedbackCategory
+  category  String?   // was FeedbackCategory
   subject   String
   message   String
-  rating    Int?     // 1-5 rating
-  status    FeedbackStatus @default(OPEN)
+  rating    Int?
+  status    String?   @default("OPEN") // was FeedbackStatus
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -230,7 +231,7 @@ model Mentorship {
   id        String   @id @default(cuid())
   mentorId  String
   menteeId  String
-  status    MentorshipStatus @default(PENDING)
+  status    String?   @default("PENDING") // was MentorshipStatus
   message   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -241,77 +242,4 @@ model Mentorship {
 
   @@unique([mentorId, menteeId])
   @@map("mentorships")
-}
-
-// Enums
-enum AdminRole {
-  SUPER_ADMIN
-  ADMIN
-  MODERATOR
-}
-
-enum JobType {
-  FULL_TIME
-  PART_TIME
-  CONTRACT
-  INTERNSHIP
-  FREELANCE
-}
-
-enum ExperienceLevel {
-  ENTRY_LEVEL
-  MID_LEVEL
-  SENIOR_LEVEL
-  EXECUTIVE
-}
-
-enum ApplicationStatus {
-  PENDING
-  REVIEWED
-  SHORTLISTED
-  REJECTED
-  HIRED
-}
-
-enum RegistrationStatus {
-  REGISTERED
-  CANCELLED
-  WAITLISTED
-}
-
-enum PaymentMethod {
-  STRIPE
-  RAZORPAY
-  PAYPAL
-  BANK_TRANSFER
-}
-
-enum DonationStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
-}
-
-enum FeedbackCategory {
-  GENERAL
-  TECHNICAL
-  FEATURE_REQUEST
-  BUG_REPORT
-  COMPLAINT
-}
-
-enum FeedbackStatus {
-  OPEN
-  IN_PROGRESS
-  RESOLVED
-  CLOSED
-}
-
-enum MentorshipStatus {
-  PENDING
-  ACCEPTED
-  DECLINED
-  ACTIVE
-  COMPLETED
 }
