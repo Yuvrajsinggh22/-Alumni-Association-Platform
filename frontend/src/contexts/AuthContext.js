@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
     return savedUser ? JSON.parse(savedUser) : null;
   });
   const [token, setToken] = useState(() => localStorage.getItem("token") || null);
+  const [loading, setLoading] = useState(true); // 👈 added
 
   // ✅ Login
   const login = async (email, password) => {
@@ -84,10 +85,21 @@ export const AuthProvider = ({ children }) => {
       setUser(JSON.parse(storedUser));
       setToken(storedToken);
     }
+    setLoading(false); // 👈 mark as finished
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        login,
+        register,
+        logout,
+        loading, // 👈 exposed
+        isAuthenticated: !!user, // 👈 exposed
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
