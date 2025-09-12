@@ -18,7 +18,7 @@ const generateToken = (payload) => {
 // Register new alumni (auto-verified)
 router.post('/register', validate(schemas.alumniRegistration), async (req, res) => {
   try {
-    const { email, password, ...profileData } = req.validatedData;
+    const { email, password, firstName, lastName, skills, interests, ...profileData } = req.validatedData;
 
     // Check if alumni already exists
     const existingAlumni = await prisma.alumni.findUnique({
@@ -32,12 +32,19 @@ router.post('/register', validate(schemas.alumniRegistration), async (req, res) 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // Convert skills and interests arrays to comma-separated strings
+    const skillsStr = Array.isArray(skills) ? skills.join(',') : (skills || '');
+    const interestsStr = Array.isArray(interests) ? interests.join(',') : (interests || '');
+
     // Create alumni with auto verification
     const alumni = await prisma.alumni.create({
       data: {
         email,
         password: hashedPassword,
+        name: `${firstName} ${lastName}`,
         ...profileData,
+        skills: skillsStr,
+        interests: interestsStr,
         isVerified: true,      // 👈 auto-verified
         emailVerified: true    // 👈 auto-email verified
       },
@@ -46,7 +53,6 @@ router.post('/register', validate(schemas.alumniRegistration), async (req, res) 
         email: true,
         name: true,
         graduationYear: true,
-        department: true,
         degree: true,
         isVerified: true,
         emailVerified: true,
@@ -86,7 +92,6 @@ router.post('/login', validate(schemas.login), async (req, res) => {
         password: true,
         name: true,
         graduationYear: true,
-        department: true,
         degree: true,
         isVerified: true,
         emailVerified: true,

@@ -31,7 +31,8 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
     phone: user?.phone || '',
     currentJob: user?.currentJob || '',
     currentCompany: user?.currentCompany || '',
@@ -44,7 +45,6 @@ const Profile = () => {
     websiteUrl: user?.websiteUrl || '',
     isPublic: user?.isPublic ?? true
   });
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -72,7 +72,8 @@ const Profile = () => {
 
   const handleCancel = () => {
     setFormData({
-      name: user?.name || '',
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
       phone: user?.phone || '',
       currentJob: user?.currentJob || '',
       currentCompany: user?.currentCompany || '',
@@ -87,7 +88,6 @@ const Profile = () => {
     });
     setIsEditing(false);
   };
-
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Profile Header */}
@@ -104,7 +104,7 @@ const Profile = () => {
             </button>
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">{user?.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{user?.firstName} {user?.lastName}</h1>
             <p className="text-gray-600">
               {user?.graduationYear} Graduate • {user?.department}
             </p>
@@ -118,9 +118,7 @@ const Profile = () => {
               <span className={`badge ${user?.isVerified ? 'badge-success' : 'badge-warning'}`}>
                 {user?.isVerified ? 'Verified' : 'Pending Verification'}
               </span>
-              <span className={`badge ${user?.isPublic ? 'badge-primary' : 'badge-secondary'}`}>
-                {user?.isPublic ? 'Public Profile' : 'Private Profile'}
-              </span>
+              <span className={`badge ${user?.isPublic ? 'badge-primary' : 'badge-secondary'}`}>{user?.isPublic ? 'Public Profile' : 'Private Profile'}</span>
             </div>
           </div>
           <button
@@ -142,16 +140,26 @@ const Profile = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name
-              </label>
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
               <input
                 type="text"
-                name="name"
-                id="name"
+                name="firstName"
+                id="firstName"
                 disabled={!isEditing}
                 className={`mt-1 input-field ${!isEditing ? 'bg-gray-50' : ''}`}
-                value={formData.name}
+                value={formData.firstName}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
+              <input
+                type="text"
+                name="lastName"
+                id="lastName"
+                disabled={!isEditing}
+                className={`mt-1 input-field ${!isEditing ? 'bg-gray-50' : ''}`}
+                value={formData.lastName}
                 onChange={handleChange}
               />
             </div>
@@ -388,6 +396,6 @@ const Profile = () => {
       </div>
     </div>
   );
-};
+}
 
 export default Profile;

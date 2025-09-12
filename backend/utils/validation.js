@@ -9,8 +9,6 @@ const alumniRegistrationSchema = Joi.object({
   phone: Joi.string().pattern(/^[+]?[1-9][\d]{0,15}$/).optional(),
   graduationYear: Joi.number().integer().min(1950).max(new Date().getFullYear()).required(),
   degree: Joi.string().required(),
-  branch: Joi.string().required(),
-  rollNumber: Joi.string().required(),
   currentPosition: Joi.string().optional().allow(''),
   currentCompany: Joi.string().optional().allow(''),
   location: Joi.string().optional().allow(''),

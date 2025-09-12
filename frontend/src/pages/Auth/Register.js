@@ -29,13 +29,14 @@ const degrees = [
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    name: '',
+     firstName: '',
+     lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
     phone: '',
     graduationYear: '',
-    department: '',
+  // department removed
     degree: '',
     currentJob: '',
     currentCompany: '',
@@ -74,8 +75,11 @@ const Register = () => {
   const validateStep1 = () => {
     const newErrors = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Full name is required';
+    if (!formData.firstName || !formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    }
+    if (!formData.lastName || !formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
     }
 
     if (!formData.email) {
@@ -109,9 +113,7 @@ const Register = () => {
       newErrors.graduationYear = 'Invalid graduation year';
     }
 
-    if (!formData.department) {
-      newErrors.department = 'Department is required';
-    }
+    // department validation removed
 
     if (!formData.degree) {
       newErrors.degree = 'Degree is required';
@@ -138,12 +140,21 @@ const Register = () => {
 
     setLoading(true);
     
-    // Convert skills and interests to arrays
+
+    // Convert skills and interests to arrays if not already
     const registrationData = {
       ...formData,
       graduationYear: parseInt(formData.graduationYear),
-        skills: formData.skills ? formData.skills : "",
-        interests: formData.interests ? formData.interests : ""
+      skills: Array.isArray(formData.skills)
+        ? formData.skills
+        : (typeof formData.skills === 'string' && formData.skills.trim() !== ''
+            ? formData.skills.split(',').map(s => s.trim()).filter(Boolean)
+            : []),
+      interests: Array.isArray(formData.interests)
+        ? formData.interests
+        : (typeof formData.interests === 'string' && formData.interests.trim() !== ''
+            ? formData.interests.split(',').map(i => i.trim()).filter(Boolean)
+            : [])
     };
 
     const result = await register(registrationData);
@@ -194,21 +205,35 @@ const Register = () => {
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           {step === 1 && (
             <div className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Full Name *
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  className={`mt-1 input-field ${errors.name ? 'input-error' : ''}`}
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={handleChange}
-                />
-                {errors.name && <p className="form-error">{errors.name}</p>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name *</label>
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    required
+                    className={`mt-1 input-field ${errors.firstName ? 'input-error' : ''}`}
+                    placeholder="Enter your first name"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                  />
+                  {errors.firstName && <p className="form-error">{errors.firstName}</p>}
+                </div>
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name *</label>
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    required
+                    className={`mt-1 input-field ${errors.lastName ? 'input-error' : ''}`}
+                    placeholder="Enter your last name"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                  />
+                  {errors.lastName && <p className="form-error">{errors.lastName}</p>}
+                </div>
               </div>
 
               <div>
