@@ -1,0 +1,29 @@
+{
+  "name": "alumni-platform",
+  "version": "1.0.0",
+  "description": "Alumni Association Platform for Government Engineering College",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm start\"",
+    "install-all": "cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "setup": "npm run install-all && cd backend && npx prisma generate"
+  },
+  "keywords": [
+    "alumni",
+    "platform",
+    "networking",
+    "jobs",
+    "events",
+    "donations"
+  ],
+  "author": "Government Engineering College",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  },
+  "dependencies": {
+    "axios": "^1.11.0"
+  }
+}
