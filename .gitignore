@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 */node_modules/
+**/.cache/
 
 # Environment files (keep .env.example, ignore actual .env)
 .env
